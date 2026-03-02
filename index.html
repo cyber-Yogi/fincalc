@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial GITA Dashboard | 2026</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com"></script>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         :root { 
             --primary: #435ebe; --bg: #f0f3f7; --text: #25396f; 
-            --jisa: #ff7eb3; --glass: rgba(255, 255, 255, 0.8);
-            --shadow: 0 8px 30px rgba(0,0,0,0.04);
+            --jisa: #ff7eb3; --glass: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 30px rgba(0,0,0,0.05);
         }
         
         body { 
@@ -21,51 +21,53 @@
 
         .container { width: 100%; max-width: 1000px; margin: 0 auto; }
         
-        .header { margin-bottom: 3rem; text-align: center; }
-        .header h1 { font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; font-size: 2.5rem; }
+        .header { margin-bottom: 2.5rem; text-align: center; }
+        .header h1 { font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; font-size: 2.2rem; color: var(--text); }
         .header p { color: #7c8db5; font-weight: 400; }
 
-        /* Grid Layout */
+        /* Stats Cards */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
             gap: 15px; margin-bottom: 30px; 
         }
 
         .card { 
             background: var(--glass); backdrop-filter: blur(10px);
             padding: 20px; border-radius: 20px; box-shadow: var(--shadow);
-            border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.4); transition: 0.3s;
         }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+        .card:hover { transform: translateY(-5px); }
         
-        .label { font-size: 0.75rem; font-weight: 600; color: #7c8db5; text-transform: uppercase; letter-spacing: 1px; }
-        .value { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 8px; }
+        .label { font-size: 0.7rem; font-weight: 700; color: #7c8db5; text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 8px; }
         .mortgage { color: #e63946 !important; }
 
-        /* Tables */
+        /* Tables & Sections */
         .strategy-section { 
-            background: white; padding: 30px; border-radius: 24px; 
+            background: white; padding: 25px; border-radius: 24px; 
             box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.02);
         }
-        .strategy-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .strategy-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; font-size: 0.75rem; text-transform: uppercase; color: #a0aec0; border-bottom: 1px solid #f0f3f7; }
-        td { padding: 15px 12px; font-size: 0.9rem; border-bottom: 1px solid #f8f9fa; }
+        th { text-align: left; padding: 12px; font-size: 0.7rem; text-transform: uppercase; color: #a0aec0; border-bottom: 2px solid #f0f3f7; }
+        td { padding: 14px 12px; font-size: 0.88rem; border-bottom: 1px solid #f8f9fa; vertical-align: middle; }
 
-        /* Badges */
-        .badge { padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
+        /* Badges & Text Styling */
+        .badge { padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; display: inline-block; }
         .weight-badge { background: #eef2ff; color: var(--primary); }
         .jisa-badge { background: #fff0f6; color: var(--jisa); }
-        .ticker-list { font-family: 'Courier New', monospace; font-weight: 600; color: #4a5568; font-size: 0.85rem; }
+        .ticker-list { font-family: 'Courier New', monospace; font-weight: 700; color: #4a5568; font-size: 0.8rem; line-height: 1.4; }
+        .role-text { color: #718096; font-size: 0.8rem; line-height: 1.4; }
 
+        /* Sync Info & Loader */
+        .footer { text-align: center; color: #a0aec0; font-size: 0.75rem; margin: 40px 0; }
         #loading-overlay { 
             position: fixed; inset: 0; background: var(--bg); 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 2000; transition: 0.5s; 
+            z-index: 2000; font-weight: 600;
         }
-        
         .spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 15px; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -74,7 +76,7 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div>Syncing Financial Bible...</div>
+    <div id="loading-text">Syncing Financial Bible...</div>
 </div>
 
 <div class="container">
@@ -83,90 +85,145 @@
         <p>Real-time CompiledSanity Sync • 2026 Edition</p>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- Live Stats Grid -->
     <div class="grid">
-        <div class="card"><div class="label">Net Worth</div><div id="nw" class="value">£0</div></div>
-        <div class="card"><div class="label">SIPP Pension</div><div id="sipp" class="value">£0</div></div>
-        <div class="card"><div class="label">Cash Reserve</div><div id="cash" class="value">£0</div></div>
-        <div class="card"><div class="label">Gold/Real</div><div id="gold" class="value">£0</div></div>
-        <div class="card"><div class="label">Debt</div><div id="mortgage" class="value mortgage">£0</div></div>
+        <div class="card"><div class="label">Total Net Worth</div><div id="nw" class="value">£0</div></div>
+        <div class="card"><div class="label">SIPP / Pension</div><div id="sipp" class="value">£0</div></div>
+        <div class="card"><div class="label">Liquid Cash</div><div id="cash" class="value">£0</div></div>
+        <div class="card"><div class="label">Gold & Assets</div><div id="gold" class="value">£0</div></div>
+        <div class="card"><div class="label">Mortgage Balance</div><div id="mortgage" class="value mortgage">£0</div></div>
+        <div class="card"><div class="label">FIRE Progress</div><div id="fire" class="value">0%</div></div>
     </div>
 
-    <!-- Fortress Section -->
+    <!-- Master Fortress Table -->
     <div class="strategy-section">
-        <div class="strategy-title">🏰 The 2026 Global Fortress Pie</div>
+        <div class="strategy-title">🏰 The 2026 Global Fortress Pie (Master Edition)</div>
         <table>
-            <thead><tr><th>Pillar</th><th>Weight</th><th>Tickers</th><th>Strategy</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Pillar</th>
+                    <th>Weight</th>
+                    <th>Final Tickers</th>
+                    <th>2026 Strategy</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr>
                     <td><strong>The Kings</strong></td>
                     <td><span class="badge weight-badge">25%</span></td>
-                    <td class="ticker-list">JNJ, WMT, MCD, KO, ABBV</td>
-                    <td>Consumer Staples Alpha.</td>
+                    <td class="ticker-list">JNJ, WMT, MCD, KO, ABBV, UNH, PG, ABEV</td>
+                    <td class="role-text">Recession-proof consumer staples.</td>
                 </tr>
                 <tr>
                     <td><strong>Hard Assets</strong></td>
                     <td><span class="badge weight-badge">25%</span></td>
-                    <td class="ticker-list">RIO, SHEL, OXY, LMT</td>
-                    <td>Minerals & Energy Security.</td>
+                    <td class="ticker-list">RIO, SHEL, OXY, LMT, VALE, PBR/A</td>
+                    <td class="role-text">Physical minerals and energy security.</td>
+                </tr>
+                <tr>
+                    <td><strong>Infra & Tech</strong></td>
+                    <td><span class="badge weight-badge">20%</span></td>
+                    <td class="ticker-list">BLK, QCOM, AVGO, RR., ASML, CIG</td>
+                    <td class="role-text">AI, Infrastructure, and Global Asset Management.</td>
+                </tr>
+                <tr>
+                    <td><strong>Gold/Silver</strong></td>
+                    <td><span class="badge weight-badge">15%</span></td>
+                    <td class="ticker-list">FNV, WPM, AEM, NEM</td>
+                    <td class="role-text">40-year royalty and mining insurance.</td>
+                </tr>
+                <tr>
+                    <td><strong>High Yield</strong></td>
+                    <td><span class="badge weight-badge">15%</span></td>
+                    <td class="ticker-list">LGEN, AXP, FRU, PZA, SEDY</td>
+                    <td class="role-text">Monthly cash flow and EM diversification.</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- JISA Section -->
-    <div class="strategy-section" style="border-left: 6px solid var(--jisa);">
-        <div class="strategy-title" style="color: var(--jisa);">🌸 Navya JISA Strategy</div>
+    <!-- Navya JISA Section -->
+    <div class="strategy-section" style="border-top: 5px solid var(--jisa);">
+        <div class="strategy-title" style="color: var(--jisa);">🌸 NAVYA JISA Allocation</div>
         <table>
-            <thead><tr><th>Asset</th><th>Weight</th><th>Role</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Asset</th>
+                    <th>Weight</th>
+                    <th>Strategy</th>
+                </tr>
+            </thead>
             <tbody>
-                <tr><td>World Equity (WEBN)</td><td><span class="badge jisa-badge">50%</span></td><td>The Destination.</td></tr>
-                <tr><td>Physical Gold (SGLN)</td><td><span class="badge jisa-badge">25%</span></td><td>The Degree Fund.</td></tr>
+                <tr>
+                    <td>Amundi World (WEBN/PACW)</td>
+                    <td><span class="badge jisa-badge">50%</span></td>
+                    <td class="role-text">The Destination: All "Swing Profits" end up here.</td>
+                </tr>
+                <tr>
+                    <td>Physical Gold (SGLN)</td>
+                    <td><span class="badge jisa-badge">25%</span></td>
+                    <td class="role-text">The Degree Fund.</td>
+                </tr>
+                <tr>
+                    <td>Junior Miners (GDXJ)</td>
+                    <td><span class="badge jisa-badge">10%</span></td>
+                    <td class="role-text">The Alpha Engine: Swing trades happen here.</td>
+                </tr>
+                <tr>
+                    <td>Berkshire Hathaway (BRK.B)</td>
+                    <td><span class="badge jisa-badge">10%</span></td>
+                    <td class="role-text">The Anchor.</td>
+                </tr>
+                <tr>
+                    <td>Cash</td>
+                    <td><span class="badge jisa-badge">5%</span></td>
+                    <td class="role-text">Dry powder for the next dip.</td>
+                </tr>
             </tbody>
         </table>
     </div>
 
-    <div style="text-align: center; color: #a0aec0; font-size: 0.8rem; margin: 40px 0;">
-        Last Sync: <span id="update-time">---</span>
+    <div class="footer">
+        <p id="sync-info">Connecting to Financial Bible...</p>
     </div>
 </div>
 
 <script>
-    // 1. PASTE YOUR GOOGLE SHEETS CSV URL HERE
-    const csvUrl = 'PASTE_YOUR_PUBLISHED_CSV_LINK_HERE';
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQ53qpxLKc_IIHcFEZAJTKfxHF0JvqKHUylAUojLpXgmMoXbHwrjFZOW8Ckz4TGnp33-5AHkvtH01_/pub?gid=390813347&single=true&output=csv';
 
-    function updateDashboard() {
+    function init() {
         Papa.parse(csvUrl, {
             download: true,
-            header: false, // Set to true if your sheet has headers
+            header: true,
+            skipEmptyLines: true,
             complete: function(results) {
-                const data = results.data;
-                
-                // 2. MAPPING DATA
-                // Replace [row][col] with the actual cell positions from your sheet
-                // Note: Index starts at 0 (A=0, B=1, etc.)
-                if(data.length > 0) {
-                    document.getElementById('nw').innerText       = data[1][1] || '£0'; // Cell B2
-                    document.getElementById('sipp').innerText     = data[2][1] || '£0'; // Cell B3
-                    document.getElementById('cash').innerText     = data[3][1] || '£0'; // Cell B4
-                    document.getElementById('gold').innerText     = data[4][1] || '£0'; // Cell B5
-                    document.getElementById('mortgage').innerText = data[5][1] || '£0'; // Cell B6
-                }
+                const data = results.data[0];
+                const fNum = (val, isPct = false) => {
+                    if (!val || val.includes('#') || val === '-') return isPct ? "0%" : "£0";
+                    let clean = val.toString().replace(/[£,%]/g, '').trim();
+                    let num = parseFloat(clean);
+                    if (isNaN(num)) return isPct ? "0%" : "£0";
+                    if(isPct) return num.toFixed(1) + "%";
+                    return (num < 0 ? "-£" : "£") + Math.abs(num).toLocaleString();
+                };
 
-                document.getElementById('update-time').innerText = new Date().toLocaleString();
-                document.getElementById('loading-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
-            },
-            error: function() {
-                // If it fails (like now because the URL is empty), we hide the loader so you can see the UI
+                document.getElementById('nw').innerText = fNum(data.NetWorth);
+                document.getElementById('sipp').innerText = fNum(data.SIPP);
+                document.getElementById('cash').innerText = fNum(data.Cash);
+                document.getElementById('gold').innerText = fNum(data.Gold);
+                document.getElementById('mortgage').innerText = fNum(data.Mortgage);
+                document.getElementById('fire').innerText = fNum(data.FIRE_Pct, true);
+
+                document.getElementById('sync-info').innerText = "Last Bible Sync: " + (data.LastSync || new Date().toLocaleTimeString());
                 document.getElementById('loading-overlay').style.display = 'none';
+            },
+            error: function(err) {
+                document.getElementById('loading-text').innerText = "Sync Error: Check CSV Link";
+                console.error(err);
             }
         });
     }
-
-    // Run on load
-    window.onload = updateDashboard;
+    window.onload = init;
 </script>
-
 </body>
 </html>
