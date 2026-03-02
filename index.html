@@ -4,187 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial GITA Dashboard | 2026</title>
-    <script src="https://cdnjs.cloudflare.com"></script>
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { 
-            --primary: #435ebe; --bg: #f0f3f7; --text: #25396f; 
-            --jisa: #ff7eb3; --glass: rgba(255, 255, 255, 0.85);
-            --shadow: 0 8px 30px rgba(0,0,0,0.05);
+            --primary: #435ebe; 
+            --secondary: #00cfd5;
+            --bg: #f2f7ff; 
+            --card-bg: #ffffff;
+            --text: #25396f; 
+            --text-light: #7c8db5;
+            --jisa: #ff7eb3; 
+            --danger: #dc3545;
+            --success: #198754;
         }
-        
+
         body { 
-            font-family: 'Inter', sans-serif; background-color: var(--bg); 
-            color: var(--text); margin: 0; padding: 20px; 
-            background-image: radial-gradient(circle at 10% 20%, rgba(67, 94, 190, 0.05) 0%, transparent 90%);
+            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
         }
 
-        .container { width: 100%; max-width: 1000px; margin: 0 auto; }
+        .container { width: 100%; max-width: 1000px; animation: fadeIn 0.8s ease-in; }
         
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .header { margin-bottom: 2.5rem; text-align: center; }
-        .header h1 { font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; font-size: 2.2rem; color: var(--text); }
-        .header p { color: #7c8db5; font-weight: 400; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 5px; color: var(--primary); letter-spacing: -1px; }
+        .header p { color: var(--text-light); font-weight: 500; }
 
-        /* Stats Cards */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
-            gap: 15px; margin-bottom: 30px; 
-        }
-
+        /* Stats Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        
         .card { 
-            background: var(--glass); backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 20px; box-shadow: var(--shadow);
-            border: 1px solid rgba(255,255,255,0.4); transition: 0.3s;
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 18px; 
+            box-shadow: 0 8px 24px rgba(67, 94, 190, 0.08); 
+            transition: all 0.3s ease; 
+            border-bottom: 4px solid var(--primary);
         }
-        .card:hover { transform: translateY(-5px); }
         
-        .label { font-size: 0.7rem; font-weight: 700; color: #7c8db5; text-transform: uppercase; letter-spacing: 1px; }
-        .value { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 8px; }
-        .mortgage { color: #e63946 !important; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(67, 94, 190, 0.15); }
+        .card.fire-card { border-bottom-color: var(--secondary); background: linear-gradient(145deg, #ffffff, #f0ffff); }
 
-        /* Tables & Sections */
+        .label { font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .value { font-size: 1.6rem; font-weight: 800; color: var(--text); display: block; }
+        
+        .mortgage-val { color: var(--danger) !important; }
+
+        /* FIRE Progress Bar */
+        .progress-container { width: 100%; background: #e9ecef; border-radius: 10px; height: 8px; margin-top: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--secondary); width: 0%; transition: width 1s ease-in-out; }
+
+        /* Strategy Sections */
         .strategy-section { 
-            background: white; padding: 25px; border-radius: 24px; 
-            box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.02);
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 18px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04); 
+            margin-bottom: 25px; 
+            overflow-x: auto;
         }
-        .strategy-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; font-size: 0.7rem; text-transform: uppercase; color: #a0aec0; border-bottom: 2px solid #f0f3f7; }
-        td { padding: 14px 12px; font-size: 0.88rem; border-bottom: 1px solid #f8f9fa; vertical-align: middle; }
-
-        /* Badges & Text Styling */
-        .badge { padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; display: inline-block; }
-        .weight-badge { background: #eef2ff; color: var(--primary); }
-        .jisa-badge { background: #fff0f6; color: var(--jisa); }
-        .ticker-list { font-family: 'Courier New', monospace; font-weight: 700; color: #4a5568; font-size: 0.8rem; line-height: 1.4; }
-        .role-text { color: #718096; font-size: 0.8rem; line-height: 1.4; }
-
-        /* Sync Info & Loader */
-        .footer { text-align: center; color: #a0aec0; font-size: 0.75rem; margin: 40px 0; }
-        #loading-overlay { 
-            position: fixed; inset: 0; background: var(--bg); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 2000; font-weight: 600;
+        .strategy-title { 
+            font-size: 1.25rem; 
+            font-weight: 800; 
+            margin-bottom: 20px; 
+            color: var(--text); 
+            display: flex; 
+            align-items: center; 
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .strategy-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .strategy-table th { padding: 15px; text-align: left; color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid var(--bg); }
+        .strategy-table td { padding: 15px; border-bottom: 1px solid var(--bg); font-size: 0.95rem; font-weight: 500; }
+        
+        .weight-badge { background: #eef2ff; color: var(--primary); padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+        .jisa-badge { background: #fff0f6; color: var(--jisa); padding: 5px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
+        .ticker-list { font-family: 'Courier New', monospace; color: #555; font-weight: bold; font-size: 0.85rem; }
+
+        .footer { margin-top: 40px; text-align: center; font-size: 0.85rem; color: var(--text-light); padding-bottom: 40px; }
+
+        #loading-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 2000; 
+            font-weight: 800; color: var(--primary);
+        }
+        
+        .spinner { 
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; 
+            border-top: 4px solid var(--primary); border-radius: 50%; 
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+            .value { font-size: 1.3rem; }
+        }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">Syncing Financial Bible...</div>
+    Syncing Financial Gita...
 </div>
 
 <div class="container">
     <div class="header">
-        <h1>Global Fortress Dashboard</h1>
-        <p>Real-time CompiledSanity Sync • 2026 Edition</p>
+        <h1>Wealth Command Center</h1>
+        <p>Real-time Intelligence from CompiledSanity</p>
     </div>
 
-    <!-- Live Stats Grid -->
     <div class="grid">
-        <div class="card"><div class="label">Total Net Worth</div><div id="nw" class="value">£0</div></div>
-        <div class="card"><div class="label">SIPP / Pension</div><div id="sipp" class="value">£0</div></div>
-        <div class="card"><div class="label">Liquid Cash</div><div id="cash" class="value">£0</div></div>
-        <div class="card"><div class="label">Gold & Assets</div><div id="gold" class="value">£0</div></div>
-        <div class="card"><div class="label">Mortgage Balance</div><div id="mortgage" class="value mortgage">£0</div></div>
-        <div class="card"><div class="label">FIRE Progress</div><div id="fire" class="value">0%</div></div>
+        <div class="card">
+            <div class="label">Net Worth</div>
+            <div id="nw" class="value">£0</div>
+        </div>
+        <div class="card">
+            <div class="label">SIPP Value</div>
+            <div id="sipp" class="value">£0</div>
+        </div>
+        <div class="card">
+            <div class="label">Liquid Cash</div>
+            <div id="cash" class="value">£0</div>
+        </div>
+        <div class="card">
+            <div class="label">Hard Assets</div>
+            <div id="gold" class="value">£0</div>
+        </div>
+        <div class="card">
+            <div class="label">Mortgage</div>
+            <div id="mortgage" class="value mortgage-val">£0</div>
+        </div>
+        <div class="card fire-card">
+            <div class="label">FIRE Goal</div>
+            <div id="fire" class="value">0%</div>
+            <div class="progress-container">
+                <div id="fire-bar" class="progress-bar"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- Master Fortress Table -->
     <div class="strategy-section">
-        <div class="strategy-title">🏰 The 2026 Global Fortress Pie (Master Edition)</div>
-        <table>
+        <div class="strategy-title">Pension (SIPP) Allocation</div>
+        <table class="strategy-table">
             <thead>
-                <tr>
-                    <th>Pillar</th>
-                    <th>Weight</th>
-                    <th>Final Tickers</th>
-                    <th>2026 Strategy</th>
-                </tr>
+                <tr><th>Component</th><th>Instrument</th><th>Allocation</th></tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><strong>The Kings</strong></td>
-                    <td><span class="badge weight-badge">25%</span></td>
-                    <td class="ticker-list">JNJ, WMT, MCD, KO, ABBV, UNH, PG, ABEV</td>
-                    <td class="role-text">Recession-proof consumer staples.</td>
-                </tr>
-                <tr>
-                    <td><strong>Hard Assets</strong></td>
-                    <td><span class="badge weight-badge">25%</span></td>
-                    <td class="ticker-list">RIO, SHEL, OXY, LMT, VALE, PBR/A</td>
-                    <td class="role-text">Physical minerals and energy security.</td>
-                </tr>
-                <tr>
-                    <td><strong>Infra & Tech</strong></td>
-                    <td><span class="badge weight-badge">20%</span></td>
-                    <td class="ticker-list">BLK, QCOM, AVGO, RR., ASML, CIG</td>
-                    <td class="role-text">AI, Infrastructure, and Global Asset Management.</td>
-                </tr>
-                <tr>
-                    <td><strong>Gold/Silver</strong></td>
-                    <td><span class="badge weight-badge">15%</span></td>
-                    <td class="ticker-list">FNV, WPM, AEM, NEM</td>
-                    <td class="role-text">40-year royalty and mining insurance.</td>
-                </tr>
-                <tr>
-                    <td><strong>High Yield</strong></td>
-                    <td><span class="badge weight-badge">15%</span></td>
-                    <td class="ticker-list">LGEN, AXP, FRU, PZA, SEDY</td>
-                    <td class="role-text">Monthly cash flow and EM diversification.</td>
-                </tr>
+                <tr><td>Core Global</td><td>HSBC FTSE All-World</td><td><span class="weight-badge">50%</span></td></tr>
+                <tr><td>Gold Shield</td><td>iShares Physical (SGLN)</td><td><span class="weight-badge">25%</span></td></tr>
+                <tr><td>Liquidity</td><td>MMF / Cash</td><td><span class="weight-badge">10%</span></td></tr>
+                <tr><td>Value King</td><td>Berkshire (BRK.B)</td><td><span class="weight-badge">7%</span></td></tr>
+                <tr><td>India Alpha</td><td>Ashoka India (AIE)</td><td><span class="weight-badge">5%</span></td></tr>
+                <tr><td>Small Cap</td><td>MSCI World Sm (WLDS)</td><td><span class="weight-badge">3%</span></td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Navya JISA Section -->
     <div class="strategy-section" style="border-top: 5px solid var(--jisa);">
-        <div class="strategy-title" style="color: var(--jisa);">🌸 NAVYA JISA Allocation</div>
-        <table>
+        <div class="strategy-title">Junior ISA (JISA) Allocation</div>
+        <table class="strategy-table">
             <thead>
-                <tr>
-                    <th>Asset</th>
-                    <th>Weight</th>
-                    <th>Strategy</th>
-                </tr>
+                <tr><th>Asset</th><th>Strategy</th><th>Weight</th></tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Amundi World (WEBN/PACW)</td>
-                    <td><span class="badge jisa-badge">50%</span></td>
-                    <td class="role-text">The Destination: All "Swing Profits" end up here.</td>
-                </tr>
-                <tr>
-                    <td>Physical Gold (SGLN)</td>
-                    <td><span class="badge jisa-badge">25%</span></td>
-                    <td class="role-text">The Degree Fund.</td>
-                </tr>
-                <tr>
-                    <td>Junior Miners (GDXJ)</td>
-                    <td><span class="badge jisa-badge">10%</span></td>
-                    <td class="role-text">The Alpha Engine: Swing trades happen here.</td>
-                </tr>
-                <tr>
-                    <td>Berkshire Hathaway (BRK.B)</td>
-                    <td><span class="badge jisa-badge">10%</span></td>
-                    <td class="role-text">The Anchor.</td>
-                </tr>
-                <tr>
-                    <td>Cash</td>
-                    <td><span class="badge jisa-badge">5%</span></td>
-                    <td class="role-text">Dry powder for the next dip.</td>
-                </tr>
+                <tr><td>Amundi World</td><td>Long-term Swing Sink</td><td><span class="jisa-badge">50%</span></td></tr>
+                <tr><td>Gold (SGLN)</td><td>Education Insurance</td><td><span class="jisa-badge">25%</span></td></tr>
+                <tr><td>Berkshire Hathaway</td><td>Compound Anchor</td><td><span class="jisa-badge">10%</span></td></tr>
+                <tr><td>Junior Miners</td><td>High-Beta Alpha</td><td><span class="jisa-badge">10%</span></td></tr>
+                <tr><td>Cash</td><td>Dry Powder</td><td><span class="jisa-badge">5%</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="strategy-section">
+        <div class="strategy-title">2026 Global Fortress Pie (Swing)</div>
+        <table class="strategy-table">
+            <thead>
+                <tr><th>Pillar</th><th>Tickers</th><th>Weight</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Kings</strong></td><td class="ticker-list">JNJ, WMT, MCD, KO, ABBV, UNH, PG, ABEV</td><td><span class="weight-badge">25%</span></td></tr>
+                <tr><td><strong>Hard Assets</strong></td><td class="ticker-list">RIO, SHEL, OXY, LMT, VALE, PBR/A</td><td><span class="weight-badge">25%</span></td></tr>
+                <tr><td><strong>Infra & Tech</strong></td><td class="ticker-list">BLK, QCOM, AVGO, RR., ASML, CIG</td><td><span class="weight-badge">20%</span></td></tr>
+                <tr><td><strong>Gold/Silver</strong></td><td class="ticker-list">FNV, WPM, AEM, NEM</td><td><span class="weight-badge">15%</span></td></tr>
+                <tr><td><strong>High Yield</strong></td><td class="ticker-list">LGEN, AXP, FRU, PZA, SEDY</td><td><span class="weight-badge">15%</span></td></tr>
             </tbody>
         </table>
     </div>
 
     <div class="footer">
-        <p id="sync-info">Connecting to Financial Bible...</p>
+        <p id="sync-info">Sync Status: Standing by...</p>
+        <p>&copy; 2026 Financial Gita Portfolio Manager</p>
     </div>
 </div>
 
@@ -198,6 +219,7 @@
             skipEmptyLines: true,
             complete: function(results) {
                 const data = results.data[0];
+                
                 const fNum = (val, isPct = false) => {
                     if (!val || val.includes('#') || val === '-') return isPct ? "0%" : "£0";
                     let clean = val.toString().replace(/[£,%]/g, '').trim();
@@ -207,19 +229,30 @@
                     return (num < 0 ? "-£" : "£") + Math.abs(num).toLocaleString();
                 };
 
+                // Update Values
                 document.getElementById('nw').innerText = fNum(data.NetWorth);
                 document.getElementById('sipp').innerText = fNum(data.SIPP);
                 document.getElementById('cash').innerText = fNum(data.Cash);
                 document.getElementById('gold').innerText = fNum(data.Gold);
                 document.getElementById('mortgage').innerText = fNum(data.Mortgage);
-                document.getElementById('fire').innerText = fNum(data.FIRE_Pct, true);
+                
+                // Update FIRE Progress
+                const fireVal = fNum(data.FIRE_Pct, true);
+                document.getElementById('fire').innerText = fireVal;
+                document.getElementById('fire-bar').style.width = fireVal;
 
-                document.getElementById('sync-info').innerText = "Last Bible Sync: " + (data.LastSync || new Date().toLocaleTimeString());
-                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('sync-info').innerText = "Last Database Sync: " + (data.LastSync || "Active");
+                
+                // Remove loader with a slight delay for effect
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                    }, 500);
+                }, 800);
             },
-            error: function(err) {
-                document.getElementById('loading-text').innerText = "Sync Error: Check CSV Link";
-                console.error(err);
+            error: function() {
+                document.getElementById('loading-overlay').innerText = "Error Connecting to Google Sheets";
             }
         });
     }
